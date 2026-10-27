@@ -1,0 +1,1276 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box}body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Team Property Listings</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: PropertyGuru-style. Index of listing cards; each opens a detail view with gallery above, facts beside, description below. */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #14202b;
+  --muted: #5b6b7a;
+  --line: #dde3e9;
+  --accent: #0b6e75;
+  --accent-ink: #ffffff;
+  --accent-soft: #e0f1f2;
+  --warn-bg: #fff3d6;
+  --warn-ink: #7a5200;
+  --ok-bg: #dff3e6;
+  --ok-ink: #1c6b3a;
+  --stage: #e7ecf0;
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171e; --surface: #17222b; --ink: #e8eef3; --muted: #94a5b4; --line: #2a3945;
+    --accent: #55c2c9; --accent-ink: #08262a; --accent-soft: #163b40;
+    --warn-bg: #3d3112; --warn-ink: #f0cf7a; --ok-bg: #173a27; --ok-ink: #8fdcab; --stage: #0b1117;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171e; --surface: #17222b; --ink: #e8eef3; --muted: #94a5b4; --line: #2a3945;
+  --accent: #55c2c9; --accent-ink: #08262a; --accent-soft: #163b40;
+  --warn-bg: #3d3112; --warn-ink: #f0cf7a; --ok-bg: #173a27; --ok-ink: #8fdcab; --stage: #0b1117;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: var(--accent); }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; flex-wrap: wrap; }
+.brand { font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
+.tag { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; background: var(--warn-bg); color: var(--warn-ink); padding: 4px 10px; border-radius: 4px; }
+
+.bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.bar input, .bar select { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+.bar input { flex: 1 1 220px; }
+.bar select { flex: 0 1 160px; }
+.count { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; text-decoration: none; color: inherit; display: flex; flex-direction: column; text-align: left; padding: 0; }
+.card:hover { border-color: var(--accent); }
+.card .ph { position: relative; aspect-ratio: 4 / 3; background: var(--stage); }
+.card .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pill { position: absolute; left: 10px; top: 10px; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: var(--ok-bg); color: var(--ok-ink); }
+.pill.sold { background: var(--warn-bg); color: var(--warn-ink); }
+.pics { position: absolute; right: 10px; bottom: 10px; font-size: 12px; font-weight: 600; background: rgba(10,18,24,.72); color: #fff; padding: 3px 9px; border-radius: 99px; }
+.card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.price { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.name { font-weight: 700; }
+.addr { color: var(--muted); font-size: 13.5px; overflow-wrap: anywhere; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.chip { font-size: 12.5px; background: var(--accent-soft); color: var(--accent); font-weight: 600; padding: 3px 9px; border-radius: 4px; font-variant-numeric: tabular-nums; }
+.empty { padding: 40px 0; color: var(--muted); }
+
+/* detail */
+.back { background: none; border: 0; padding: 6px 0; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+.detail { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.gallery, .panel, .section { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.stage { position: relative; aspect-ratio: 4 / 3; background: var(--stage); border-radius: 8px 8px 0 0; overflow: hidden; }
+.stage img { width: 100%; height: 100%; object-fit: contain; display: block; cursor: zoom-in; }
+.nav { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(10,18,24,.65); color: #fff; font-size: 20px; line-height: 1; }
+.nav.prev { left: 10px; } .nav.next { right: 10px; }
+.cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 14px 10px; background: linear-gradient(transparent, rgba(10,18,24,.7)); color: #fff; font-size: 13px; display: flex; justify-content: space-between; gap: 10px; }
+.thumbs { display: flex; gap: 8px; padding: 10px; overflow-x: auto; }
+.thumbs button { flex: 0 0 84px; height: 62px; padding: 0; border: 2px solid transparent; border-radius: 4px; overflow: hidden; background: var(--stage); opacity: .7; }
+.thumbs button[aria-current="true"] { border-color: var(--accent); opacity: 1; }
+.thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.panel { padding: 18px; display: flex; flex-direction: column; gap: 14px; position: sticky; top: 12px; min-width: 0; }
+.panel h1 { font-size: 20px; line-height: 1.25; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.panel .big { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.lbl { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.own { background: var(--warn-bg); color: var(--warn-ink); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.own b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.own .lbl { color: inherit; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin: 0; }
+.facts div { min-width: 0; }
+.facts dt { font-size: 12px; color: var(--muted); }
+.facts dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 9px 14px; font-weight: 600; text-decoration: none; color: var(--ink); text-align: center; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.phone { font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; user-select: all; }
+
+.section { padding: 18px; margin-top: 18px; }
+.section h2 { font-size: 16px; margin: 0 0 10px; }
+.section p { margin: 0 0 8px; max-width: 68ch; overflow-wrap: anywhere; }
+.vid { display: block; width: 100%; max-width: 360px; max-height: 75vh; background: #000; border-radius: 6px; }
+.doc { border-top: 1px solid var(--line); padding: 10px 0; }
+.doc summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.pages { display: grid; gap: 10px; margin-top: 10px; max-width: 900px; }
+.pages img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 4px; background: #fff; display: block; }
+.section p.line { margin: 0 0 4px; }
+.muted { color: var(--muted); }
+.updated { font-size: 12.5px; color: var(--muted); }
+
+.lb { position: fixed; inset: 0; background: rgba(6,10,14,.94); z-index: 50; display: flex; align-items: center; justify-content: center; padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+.lb img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.lb .x { position: absolute; right: max(12px, env(safe-area-inset-right, 0px)); top: max(12px, env(safe-area-inset-top, 0px)); background: rgba(255,255,255,.16); color: #fff; border: 0; border-radius: 50%; width: 42px; height: 42px; font-size: 22px; }
+.lb .nav.prev { left: max(10px, env(safe-area-inset-left, 0px)); } .lb .nav.next { right: max(10px, env(safe-area-inset-right, 0px)); }
+
+@media (max-width: 860px) {
+  .detail { grid-template-columns: minmax(0, 1fr); }
+  .panel { position: static; }
+}
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Team Property Listings</div>
+    <span class="tag">Internal use only</span>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+const PROPERTIES = [
+ {
+  "id": "jalan-sg-besi",
+  "project": "Jalan Sg Besi",
+  "address": "Pudu",
+  "area": "57100 Kuala Lumpur",
+  "type": "Shop",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "chips": [
+   "2-storey shop",
+   "Freehold",
+   "Land 1,600 sqft",
+   "Built-up ~2,400 sqft",
+   "Tenanted, month to month"
+  ],
+  "facts": [
+   [
+    "Type",
+    "2-storey shop"
+   ],
+   [
+    "Tenure",
+    "Freehold"
+   ],
+   [
+    "Land",
+    "20 x 80 ft (1,600 sqft)"
+   ],
+   [
+    "Built-up",
+    "~2,400 sqft"
+   ],
+   [
+    "Tenancy",
+    "Month to month"
+   ],
+   [
+    "Bank value",
+    "RM 2.5m (nilai harta)"
+   ],
+   [
+    "RPGT",
+    "None"
+   ],
+   [
+    "Ownership",
+    "Individual name"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/sg-besi-shop-1.jpg",
+    "Front of the shop"
+   ]
+  ],
+  "description": [
+   "Jalan Sg Besi, Pudu, 57100 Kuala Lumpur",
+   "2 storey shop",
+   "Freehold",
+   "Land area : 20x80 1600 sqft",
+   "Build up area : approximately 2400 sqft",
+   "Tenanted to motorcycle shop 40 years ago at RM 4800, tenancy expired. Currently at month to month basis",
+   "No RPGT",
+   "Under individual name",
+   "Bank value 2.5mil (nilai harta)"
+  ]
+ },
+ {
+  "id": "jalan-puj-3-8",
+  "project": "Jalan PUJ 3/8",
+  "address": "Taman Puncak Jalil",
+  "area": "43300 Seri Kembangan, Selangor",
+  "type": "Shoplot",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 1800000,
+  "chips": [
+   "2-storey shoplot",
+   "Land 22 x 75 ft",
+   "Leasehold"
+  ],
+  "facts": [
+   [
+    "Type",
+    "2-storey shoplot"
+   ],
+   [
+    "Land",
+    "22 x 75 ft"
+   ],
+   [
+    "Tenure",
+    "Leasehold"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/puj-3-8-shoplot-1.jpg",
+    "Frontage"
+   ],
+   [
+    "photos/puj-3-8-shoplot-2.jpg",
+    "Interior"
+   ],
+   [
+    "photos/puj-3-8-shoplot-3.jpg",
+    "Interior"
+   ],
+   [
+    "photos/puj-3-8-shoplot-4.jpg",
+    "Interior"
+   ],
+   [
+    "photos/puj-3-8-shoplot-5.jpg",
+    "Interior"
+   ],
+   [
+    "photos/puj-3-8-shoplot-6.jpg",
+    "Interior"
+   ],
+   [
+    "photos/puj-3-8-shoplot-7.jpg",
+    "Interior"
+   ],
+   [
+    "photos/puj-3-8-shoplot-8.jpg",
+    "Toilet"
+   ],
+   [
+    "photos/puj-3-8-shoplot-9.jpg",
+    "Toilet"
+   ]
+  ],
+  "description": [
+   "Jalan PUJ 3/8, Taman Puncak Jalil, 43300 Seri Kembangan, Selangor, Malaysia.",
+   "2 stories shoplot",
+   "Leasehold",
+   "Land 22x75",
+   "Asking 1.8m"
+  ]
+ },
+ {
+  "id": "empire-residence-parcel-5",
+  "project": "Empire Residence Parcel 5",
+  "address": "Jalan PJU 8/1, Damansara Perdana",
+  "area": "47820 Petaling Jaya, Selangor",
+  "type": "Superlink",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 2500000,
+  "chips": [
+   "3.5-storey superlink",
+   "466 sqm",
+   "Leasehold, no outstanding"
+  ],
+  "facts": [
+   [
+    "Type",
+    "3.5-storey superlink"
+   ],
+   [
+    "Area (parcel + accessory)",
+    "466 sqm"
+   ],
+   [
+    "Tenure",
+    "Leasehold"
+   ],
+   [
+    "Outstanding",
+    "None"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/empire-5-1.jpg",
+    "Front of the house"
+   ],
+   [
+    "photos/empire-5-2.jpg",
+    "Hall facing the car porch"
+   ],
+   [
+    "photos/empire-5-3.jpg",
+    "Side entrance"
+   ],
+   [
+    "photos/empire-5-4.jpg",
+    "Living area"
+   ],
+   [
+    "photos/empire-5-5.jpg",
+    "Living, dining and kitchen"
+   ],
+   [
+    "photos/empire-5-6.jpg",
+    "Kitchen"
+   ],
+   [
+    "photos/empire-5-7.jpg",
+    "Hall"
+   ],
+   [
+    "photos/empire-5-8.jpg",
+    "Courtyard"
+   ],
+   [
+    "photos/empire-5-9.jpg",
+    "Staircase"
+   ],
+   [
+    "photos/empire-5-10.jpg",
+    "Staircase"
+   ],
+   [
+    "photos/empire-5-11.jpg",
+    "Staircase and hall"
+   ],
+   [
+    "photos/empire-5-12.jpg",
+    "Stairwell"
+   ],
+   [
+    "photos/empire-5-13.jpg",
+    "Staircase landing"
+   ],
+   [
+    "photos/empire-5-14.jpg",
+    "Landing"
+   ],
+   [
+    "photos/empire-5-15.jpg",
+    "Corridor"
+   ],
+   [
+    "photos/empire-5-16.jpg",
+    "Hall"
+   ],
+   [
+    "photos/empire-5-17.jpg",
+    "Hall"
+   ],
+   [
+    "photos/empire-5-18.jpg",
+    "Room"
+   ],
+   [
+    "photos/empire-5-19.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-20.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-21.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-22.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-23.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-24.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-25.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-26.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-27.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-28.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/empire-5-29.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/empire-5-30.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/empire-5-31.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/empire-5-32.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/empire-5-33.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/empire-5-34.jpg",
+    "Bathroom"
+   ]
+  ],
+  "description": [
+   "Empire Residence Parcel 5, Jln PJU 8/1, Damansara Perdana, 47820 Petaling Jaya, Selangor",
+   "3.5 storey superlink",
+   "Luas Petak + Luas Petak Aksesori = 466 sqmt",
+   "Leasehold no outstanding",
+   "Asking 2.5m (CIMB T-Z, RHB, AMB)"
+  ]
+ },
+ {
+  "id": "kemuning-jalan-bijaksana",
+  "project": "Jalan Bijaksana 25/150c",
+  "address": "Taman Alam Kemuning, Section 25",
+  "area": "Shah Alam, Selangor",
+  "type": "Bungalow",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 2600000,
+  "chips": [
+   "Bungalow",
+   "Built-up 4,500 sqft"
+  ],
+  "facts": [
+   [
+    "Built-up",
+    "4,500 sqft"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/kemuning-bungalow-1.jpg",
+    "Exterior"
+   ],
+   [
+    "photos/kemuning-bungalow-2.jpg",
+    "Terrace"
+   ],
+   [
+    "photos/kemuning-bungalow-3.jpg",
+    "Living hall"
+   ],
+   [
+    "photos/kemuning-bungalow-4.jpg",
+    "Living hall and staircase"
+   ],
+   [
+    "photos/kemuning-bungalow-5.jpg",
+    "Room"
+   ],
+   [
+    "photos/kemuning-bungalow-6.jpg",
+    "Upper landing"
+   ],
+   [
+    "photos/kemuning-bungalow-7.jpg",
+    "Room with ensuite bathroom"
+   ],
+   [
+    "photos/kemuning-bungalow-8.jpg",
+    "Room"
+   ],
+   [
+    "photos/kemuning-bungalow-9.jpg",
+    "Tiled area"
+   ],
+   [
+    "photos/kemuning-bungalow-10.jpg",
+    "Bathroom with bathtub"
+   ],
+   [
+    "photos/kemuning-bungalow-11.jpg",
+    "Bathroom with bathtub"
+   ],
+   [
+    "photos/kemuning-bungalow-12.jpg",
+    "Terrace"
+   ],
+   [
+    "photos/kemuning-bungalow-13.jpg",
+    "Garden"
+   ],
+   [
+    "photos/kemuning-bungalow-14.jpg",
+    "Entrance sign"
+   ],
+   [
+    "photos/kemuning-bungalow-15.jpg",
+    "Location map"
+   ],
+   [
+    "photos/kemuning-bungalow-16.jpg",
+    "Street map"
+   ]
+  ],
+  "description": [
+   "Jalan Bijaksana 25/150c, Taman Alam Kemuning, Section 25, Shah Alam, Selangor",
+   "Build up 4,500sf",
+   "Asking 2.6m"
+  ]
+ },
+ {
+  "id": "flora-damansara",
+  "project": "Flora Damansara",
+  "address": "Jalan PJU 8/9",
+  "area": "Bandar Damansara Perdana, 47820 Petaling Jaya, Selangor",
+  "type": "Apartment",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 420000,
+  "chips": [
+   "Apartment",
+   "850 sqft",
+   "Leasehold"
+  ],
+  "facts": [
+   [
+    "Size",
+    "850 sqft"
+   ],
+   [
+    "Tenure",
+    "Leasehold"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/flora-damansara-1.jpg",
+    "Living hall"
+   ],
+   [
+    "photos/flora-damansara-2.jpg",
+    "Kitchen"
+   ],
+   [
+    "photos/flora-damansara-3.jpg",
+    "Room"
+   ],
+   [
+    "photos/flora-damansara-4.jpg",
+    "Bathroom"
+   ]
+  ],
+  "description": [
+   "Flora Damansara, Jalan PJU 8/9, Bandar Damansara Perdana, 47820 Petaling Jaya, Selangor Darul Ehsan, Malaysia.",
+   "850 sqft",
+   "Leasehold",
+   "Asking 420k"
+  ]
+ },
+ {
+  "id": "forest-green-apartment",
+  "project": "Forest Green Apartment",
+  "address": "Jalan Sungai Long",
+  "area": "Bandar Sungai Long, 43000 Kajang, Selangor",
+  "type": "Apartment",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 500000,
+  "chips": [
+   "Apartment",
+   "958 sqft",
+   "3 rooms",
+   "2 baths",
+   "Freehold",
+   "Low maintenance fees"
+  ],
+  "facts": [
+   [
+    "Size",
+    "958 sqft"
+   ],
+   [
+    "Tenure",
+    "Freehold"
+   ],
+   [
+    "Rooms",
+    "3"
+   ],
+   [
+    "Bathrooms",
+    "2"
+   ],
+   [
+    "Maintenance",
+    "Low maintenance fees"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/forest-green-apartment-1.jpg",
+    "View of the pool"
+   ],
+   [
+    "photos/forest-green-apartment-2.jpg",
+    "Living hall"
+   ],
+   [
+    "photos/forest-green-apartment-3.jpg",
+    "Kitchen"
+   ],
+   [
+    "photos/forest-green-apartment-4.jpg",
+    "Room"
+   ],
+   [
+    "photos/forest-green-apartment-5.jpg",
+    "Room with wardrobe"
+   ],
+   [
+    "photos/forest-green-apartment-6.jpg",
+    "Room"
+   ],
+   [
+    "photos/forest-green-apartment-7.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/forest-green-apartment-8.jpg",
+    "Bathroom"
+   ]
+  ],
+  "description": [
+   "Forest Green Apartment, Jalan Sungai Long, Bandar Sungai Long, 43000 Kajang, Selangor, Malaysia",
+   "958 sqft 3 rooms 2 bathrooms",
+   "Freehold, low maintenance fees",
+   "Asking 500k"
+  ]
+ },
+ {
+  "id": "taman-sri-putra",
+  "project": "Jalan SP4",
+  "address": "Taman Sri Putra",
+  "area": "47000 Sungai Buloh",
+  "type": "Flat",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 500000,
+  "chips": [
+   "Flat",
+   "876 sqft",
+   "3 rooms",
+   "2 baths",
+   "Freehold",
+   "Original unit"
+  ],
+  "facts": [
+   [
+    "Size",
+    "876 sqft"
+   ],
+   [
+    "Tenure",
+    "Freehold"
+   ],
+   [
+    "Rooms",
+    "3"
+   ],
+   [
+    "Bathrooms",
+    "2"
+   ],
+   [
+    "Condition",
+    "Original unit"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/sri-putra-flat-1.jpg",
+    "Building exterior"
+   ],
+   [
+    "photos/sri-putra-flat-2.jpg",
+    "Living hall"
+   ],
+   [
+    "photos/sri-putra-flat-3.jpg",
+    "Room"
+   ],
+   [
+    "photos/sri-putra-flat-4.jpg",
+    "Kitchen"
+   ],
+   [
+    "photos/sri-putra-flat-5.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/sri-putra-flat-6.jpg",
+    "Bathroom"
+   ]
+  ],
+  "description": [
+   "Jalan SP4, Taman Sri Putra, 47000 Sungai Buloh",
+   "876 sqft 3 rooms 2 bathrooms",
+   "Ori unit | 1 floor | Freehold",
+   "Asking 500k"
+  ]
+ },
+ {
+  "id": "jalan-usj-1-13",
+  "project": "Jalan USJ 1/13",
+  "address": "Taman Perindustrian USJ 1",
+  "area": "47600 Subang Jaya, Selangor",
+  "type": "Terrace house",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 1000000,
+  "chips": [
+   "Terrace house",
+   "18 x 65 ft",
+   "Leasehold, 66 years left",
+   "Facing shops"
+  ],
+  "facts": [
+   [
+    "Size",
+    "18 x 65 ft"
+   ],
+   [
+    "Tenure",
+    "Leasehold, 66 years left"
+   ],
+   [
+    "Facing",
+    "Shops"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/usj-1-13-1.jpg",
+    "Front of house"
+   ],
+   [
+    "photos/usj-1-13-2.jpg",
+    "Kitchen"
+   ],
+   [
+    "photos/usj-1-13-3.jpg",
+    "Kitchen"
+   ],
+   [
+    "photos/usj-1-13-4.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/usj-1-13-5.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/usj-1-13-6.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/usj-1-13-7.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/usj-1-13-8.jpg",
+    "Bathroom"
+   ]
+  ],
+  "description": [
+   "Jalan USJ 1/13, Taman Perindustrian USJ 1, 47600 Subang Jaya, Selangor, Malaysia.",
+   "18x65",
+   "Leasehold (balance 66 years)",
+   "Facing shops",
+   "Asking 1m"
+  ]
+ },
+ {
+  "id": "residensi-estetika",
+  "project": "Residensi Estetika",
+  "address": "Jalan Dagang SB",
+  "area": "The Mines Resort City, 43300 Seri Kembangan, Selangor",
+  "type": "Condominium",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 900000,
+  "chips": [
+   "Condominium",
+   "861 sqft"
+  ],
+  "facts": [
+   [
+    "Size",
+    "861 sqft"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/residensi-estetika-1.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/residensi-estetika-2.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/residensi-estetika-3.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/residensi-estetika-4.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/residensi-estetika-5.jpg",
+    "Empty room"
+   ]
+  ],
+  "description": [
+   "Residensi Estetika, Jalan Dagang SB, The Mines Resort City, 43300 Seri Kembangan, Selangor, Malaysia.",
+   "861 sqft",
+   "Asking 900k"
+  ]
+ },
+ {
+  "id": "park-one-south",
+  "project": "Park @ One South",
+  "address": "Jalan Serdang Perdana 1/1",
+  "area": "Taman Serdang Perdana, 43300 Seri Kembangan, Selangor",
+  "type": "Condominium",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 500000,
+  "chips": [
+   "Condominium",
+   "1,065 sqft",
+   "3 rooms",
+   "2 baths",
+   "2 car parks",
+   "Fully furnished"
+  ],
+  "facts": [
+   [
+    "Size",
+    "1,065 sqft"
+   ],
+   [
+    "Rooms",
+    "3"
+   ],
+   [
+    "Bathrooms",
+    "2"
+   ],
+   [
+    "Car parks",
+    "2"
+   ],
+   [
+    "Furnishing",
+    "Fully furnished"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/park-one-south-1.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/park-one-south-2.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/park-one-south-3.jpg",
+    "Bedroom wardrobe"
+   ],
+   [
+    "photos/park-one-south-4.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/park-one-south-5.jpg",
+    "Bedroom wardrobe"
+   ],
+   [
+    "photos/park-one-south-6.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/park-one-south-7.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/park-one-south-8.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/park-one-south-9.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/park-one-south-10.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/park-one-south-11.jpg",
+    "Kitchen"
+   ]
+  ],
+  "description": [
+   "Park @ One South, Jalan Serdang Perdana 1/1, Taman Serdang Perdana, 43300 Seri Kembangan, Selangor, Malaysia.",
+   "1065 sqft",
+   "3r2b2cp",
+   "Fully furnished",
+   "Asking 500k"
+  ]
+ },
+ {
+  "id": "aston-kiara-3",
+  "project": "Aston Kiara 3",
+  "address": "Jalan Kiara 3",
+  "area": "Mont Kiara, 50480 Kuala Lumpur",
+  "type": "Condominium",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "video": "aston-kiara-3.mp4",
+  "asking": 1000000,
+  "chips": [
+   "Condominium",
+   "1,518 sqft",
+   "3+1 rooms",
+   "3 baths",
+   "Freehold",
+   "Tenanted"
+  ],
+  "facts": [
+   [
+    "Size",
+    "1,518 sqft"
+   ],
+   [
+    "Tenure",
+    "Freehold"
+   ],
+   [
+    "Rooms",
+    "3+1"
+   ],
+   [
+    "Bathrooms",
+    "3"
+   ],
+   [
+    "Parking",
+    "2, level 2a"
+   ],
+   [
+    "Balcony",
+    "No"
+   ],
+   [
+    "Tenancy",
+    "Until 15 Aug 2027, rental 2300"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/aston-kiara-3-1.jpg",
+    "Living hall"
+   ],
+   [
+    "photos/aston-kiara-3-2.jpg",
+    "TV wall and sofa"
+   ],
+   [
+    "photos/aston-kiara-3-3.jpg",
+    "Living hall window"
+   ],
+   [
+    "photos/aston-kiara-3-4.jpg",
+    "Dining and kitchen"
+   ],
+   [
+    "photos/aston-kiara-3-5.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/aston-kiara-3-6.jpg",
+    "Bedroom"
+   ],
+   [
+    "photos/aston-kiara-3-7.jpg",
+    "View from the unit"
+   ],
+   [
+    "photos/aston-kiara-3-8.jpg",
+    "Bathroom"
+   ],
+   [
+    "photos/aston-kiara-3-9.jpg",
+    "Bathroom"
+   ]
+  ],
+  "description": [
+   "Aston Kiara 3, Jalan Kiara 3, Mont Kiara, 50480 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia.",
+   "1518 sqft",
+   "Parking lot: 2 parking at level 2a",
+   "Freehold",
+   "3+1 rooms 3 bathroom",
+   "Balcony: no",
+   "Currently tenanted until 15th August 2027 rental 2300.",
+   "Asking price 1m"
+  ]
+ },
+ {
+  "id": "d-island-residence",
+  "project": "D'Island Residence",
+  "address": "Jalan Island Selatan 4",
+  "area": "47130 Puchong, Selangor",
+  "type": "Corner Semi-D",
+  "status": "Available",
+  "updated": "23 Oct 2026",
+  "asking": 3000000,
+  "chips": [
+   "Corner Semi-D",
+   "Land ~4,200 sqft",
+   "Built-up ~2,800 sqft",
+   "Leasehold"
+  ],
+  "facts": [
+   [
+    "Type",
+    "Corner Semi-D"
+   ],
+   [
+    "Tenure",
+    "Leasehold"
+   ],
+   [
+    "Land area",
+    "~4,200 sqft"
+   ],
+   [
+    "Built-up",
+    "~2,800 sqft"
+   ]
+  ],
+  "photos": [
+   [
+    "photos/d-island-residence-4.jpg",
+    "Front elevation with balcony"
+   ],
+   [
+    "photos/d-island-residence-5.jpg",
+    "Side and garden"
+   ],
+   [
+    "photos/d-island-residence-3.jpg",
+    "Living hall and staircase"
+   ],
+   [
+    "photos/d-island-residence-1.jpg",
+    "Living and dining hall"
+   ],
+   [
+    "photos/d-island-residence-8.jpg",
+    "Living hall"
+   ],
+   [
+    "photos/d-island-residence-9.jpg",
+    "Ground floor hall"
+   ],
+   [
+    "photos/d-island-residence-6.jpg",
+    "Upper landing"
+   ],
+   [
+    "photos/d-island-residence-2.jpg",
+    "Room"
+   ],
+   [
+    "photos/d-island-residence-7.jpg",
+    "Bathroom"
+   ]
+  ],
+  "description": [
+   "D'Island Residence, Jalan Island Selatan 4, 47130 Puchong, Selangor",
+   "Type: Corner Semi-D",
+   "LA : approximately 4,200 sqft",
+   "BU: approximately 2,800 sqft",
+   "Tenure: Leasehold",
+   "Asking 3m"
+  ]
+ }
+];
+
+const $ = (s, r) => (r || document).querySelector(s);
+const rm = n => "RM " + n.toLocaleString("en-MY");
+const rmShort = n => "RM " + (n / 1e6).toFixed(n % 1e6 === 0 ? 1 : 2) + "m";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const sqft = n => n.toLocaleString("en-MY") + " sqft";
+const app = $("#app");
+let filters = { q: "", type: "", status: "" };
+let cur = 0, lbOpen = false;
+
+function route() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  const p = PROPERTIES.find(x => x.id === id);
+  p ? renderDetail(p) : renderIndex();
+}
+
+function renderIndex() {
+  document.title = "Team Property Listings";
+  const types = [...new Set(PROPERTIES.map(p => p.type))];
+  const statuses = [...new Set(PROPERTIES.map(p => p.status))];
+  app.innerHTML = `
+    <div class="bar">
+      <input id="q" type="search" placeholder="Search project, street or area" value="${esc(filters.q)}" aria-label="Search listings">
+      <select id="ftype" aria-label="Property type"><option value="">All types</option>${types.map(t => `<option ${t === filters.type ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>
+      <select id="fstatus" aria-label="Status"><option value="">All status</option>${statuses.map(t => `<option ${t === filters.status ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>
+    </div>
+    <p class="count" id="count"></p>
+    <div class="grid" id="grid"></div>`;
+  $("#q").oninput = e => { filters.q = e.target.value; drawGrid(); };
+  $("#ftype").onchange = e => { filters.type = e.target.value; drawGrid(); };
+  $("#fstatus").onchange = e => { filters.status = e.target.value; drawGrid(); };
+  drawGrid();
+}
+
+function drawGrid() {
+  const q = filters.q.trim().toLowerCase();
+  const list = PROPERTIES.filter(p =>
+    (!q || [p.project, p.address, p.area, p.type].join(" ").toLowerCase().includes(q)) &&
+    (!filters.type || p.type === filters.type) && (!filters.status || p.status === filters.status));
+  $("#count").textContent = list.length + (list.length === 1 ? " listing" : " listings");
+  $("#grid").innerHTML = list.length ? list.map(p => `
+    <a class="card" href="#${esc(p.id)}">
+      <div class="ph"><img src="${esc(p.photos[0][0])}" alt="${esc(p.photos[0][1])}" loading="lazy">
+        <span class="pill ${p.status === "Available" ? "" : "sold"}">${esc(p.status)}</span>
+        <span class="pics">${p.photos.length} photos${p.video ? " + video" : ""}</span></div>
+      <div class="body">
+        <div class="price">${p.asking ? rmShort(p.asking) : "Price TBC"}</div>
+        <div class="name">${esc(p.project)}</div>
+        <div class="addr">${esc(p.address)}, ${esc(p.area)}</div>
+        <div class="chips">${p.chips.map(c => `<span class="chip">${esc(c)}</span>`).join("")}</div>
+      </div>
+    </a>`).join("") : `<div class="empty">No listings match. Clear the search or filters.</div>`;
+}
+
+function renderDetail(p) {
+  document.title = p.project + " | Team Property Listings";
+  cur = 0;
+  const full = `${p.address}, ${p.area}`;
+  app.innerHTML = `
+    <button class="back" id="back">&larr; All listings</button>
+    <div class="detail">
+      <div>
+        <div class="gallery">
+          <div class="stage"><img id="main" alt="">
+            <button class="nav prev" aria-label="Previous photo" id="prev">&#8249;</button>
+            <button class="nav next" aria-label="Next photo" id="next">&#8250;</button>
+            <div class="cap"><span id="cap"></span><span id="num"></span></div></div>
+          <div class="thumbs" id="thumbs">${p.photos.map((ph, i) => `<button data-i="${i}" aria-label="Photo ${i + 1}: ${esc(ph[1])}"><img src="${esc(ph[0])}" alt="" loading="lazy"></button>`).join("")}</div>
+        </div>
+        ${p.video ? `<div class="section"><h2>Video walkthrough</h2><video class="vid" controls playsinline preload="metadata" poster="${esc(p.photos[0][0])}" src="${esc(p.video)}"></video></div>` : ""}
+        <div class="section"><h2>Description</h2>${p.description.map(l => `<p class="line">${esc(l)}</p>`).join("")}<p class="updated">Updated ${esc(p.updated)}</p></div>
+        ${p.docs ? `<div class="section"><h2>Documents</h2>
+          ${p.docs.length ? p.docs.map(d => `<details class="doc"><summary>${esc(d[0])} (${d[1].length} ${d[1].length > 1 ? "pages" : "page"})</summary>${d[2] ? `<div class="row"><button class="btn dl" data-pdf="${esc(d[2])}" data-name="${esc(d[0].replace(/[^\w ()-]+/g, "").trim())}.pdf" hidden>Download PDF</button></div>` : ""}<div class="pages">${d[1].map((src, i) => `<img src="${esc(src)}" alt="${esc(d[0])} page ${i + 1}" loading="lazy">`).join("")}</div></details>`).join("") : `<p class="muted">No documents added yet.</p>`}
+        </div>` : ""}
+
+      </div>
+      <aside class="panel">
+        <div><span class="pill ${p.status === "Available" ? "" : "sold"}" style="position:static;display:inline-block;margin-bottom:8px">${esc(p.status)}</span>
+          <h1>${esc(p.project)}</h1><div class="addr">${esc(full)}</div></div>
+        <div><div class="lbl">Asking price</div><div class="big">${p.asking ? rm(p.asking) : "To be confirmed"}</div></div>
+        ${p.owner ? `<div class="own"><span class="lbl">Owner price (internal)</span><b>${rm(p.owner)}</b></div>` : ""}
+        <dl class="facts">${p.facts.map(f => `<div><dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd></div>`).join("")}</dl>
+        ${p.phone ? `<div><div class="lbl">Contact</div><div class="phone">${esc(p.phone)}</div></div>` : ""}
+        <div class="row">
+          ${p.wa ? `<a class="btn primary" href="https://wa.me/${esc(p.wa)}" target="_blank" rel="noopener">WhatsApp</a>` : ""}
+          <button class="btn" id="copy">Copy summary</button>
+        </div>
+      </aside>
+    </div>`;
+  const show = i => {
+    cur = (i + p.photos.length) % p.photos.length;
+    $("#main").src = p.photos[cur][0]; $("#main").alt = p.photos[cur][1];
+    $("#cap").textContent = p.photos[cur][1]; $("#num").textContent = (cur + 1) + " / " + p.photos.length;
+    document.querySelectorAll("#thumbs button").forEach((b, k) => b.setAttribute("aria-current", k === cur));
+    if (lbOpen) $("#lbimg").src = p.photos[cur][0];
+  };
+  show(0);
+  if (p.photos.length < 2) { $("#prev").hidden = true; $("#next").hidden = true; }
+  $("#back").onclick = () => { location.hash = ""; };
+  $("#prev").onclick = () => show(cur - 1);
+  $("#next").onclick = () => show(cur + 1);
+  $("#thumbs").onclick = e => { const b = e.target.closest("button"); if (b) show(+b.dataset.i); };
+  $("#main").onclick = () => openLb(p, show);
+  $("#copy").onclick = async () => {
+    const t = `${p.project}\n${full}\n${p.chips.join(" | ")}\n${p.asking ? "Asking " + rm(p.asking) : "Price TBC"}${p.phone ? "\nContact " + p.phone : ""}\n${location.href.split("#")[0]}#${p.id}`;
+    try { await navigator.clipboard.writeText(t); $("#copy").textContent = "Copied"; }
+    catch (e) { $("#copy").textContent = "Copy not allowed here"; }
+    setTimeout(() => { const c = $("#copy"); if (c) c.textContent = "Copy summary"; }, 1800);
+  };
+  window.scrollTo(0, 0);
+  window._show = show;
+}
+
+function openLb(p, show) {
+  lbOpen = true;
+  const d = document.createElement("div"); d.className = "lb"; d.id = "lb";
+  d.innerHTML = `<img id="lbimg" alt=""><button class="x" aria-label="Close">&times;</button><button class="nav prev" aria-label="Previous photo">&#8249;</button><button class="nav next" aria-label="Next photo">&#8250;</button>`;
+  document.body.appendChild(d);
+  $("#lbimg").src = p.photos[cur][0];
+  const close = () => { lbOpen = false; d.remove(); };
+  d.querySelector(".x").onclick = close;
+  d.querySelector(".prev").onclick = () => show(cur - 1);
+  d.querySelector(".next").onclick = () => show(cur + 1);
+  d.onclick = e => { if (e.target === d) close(); };
+}
+
+document.addEventListener("keydown", e => {
+  if (!window._show || !location.hash) return;
+  if (e.key === "ArrowLeft") window._show(cur - 1);
+  if (e.key === "ArrowRight") window._show(cur + 1);
+  if (e.key === "Escape" && lbOpen) { lbOpen = false; $("#lb").remove(); }
+});
+window.addEventListener("hashchange", () => { const l = $("#lb"); if (l) { l.remove(); lbOpen = false; } route(); });
+route();
+</script>
+
+</body></html>
