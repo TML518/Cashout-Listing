@@ -1152,7 +1152,10 @@ const PROPERTIES = [
 
 const $ = (s, r) => (r || document).querySelector(s);
 const rm = n => "RM " + n.toLocaleString("en-MY");
-const formatRM = n => "RM " + new Intl.NumberFormat('en-MY').format(n);
+
+// Keeps 6 and 7 digits as full numbers (100,000 and 1,000,000), shortens 8+ digits (10,000,000+)
+const rmShort = n => n >= 1e7 ? "RM " + (n / 1e6).toFixed(1) + "m" : rm(n);
+
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const sqft = n => n.toLocaleString("en-MY") + " sqft";
 const app = $("#app");
